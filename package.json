@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/yyolk/tokentrasher.app#readme",
   "dependencies": {
+    "dotenv": "^8.6.0",
     "xumm-sdk": "^0.6.0"
   }
 }
