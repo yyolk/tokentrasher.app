@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  TOKEN TRASH
+  
+Parameters:
+  XUMMApiToken:
+    Type: String
+    Description: The registered XUMM API Token
+
+  XUMMApiSecret:
+    Type: String
+    Description: The registered XUMM API Secret
+    NoEcho: true
+
+Resources:
+  TokenTrashHTTP:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: TokenTrashHTTP
+      ProtocolType: HTTP
+      Target:
+        Fn::Sub:
+          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${XUMMCallbackFunction.Arn}/invocations
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+        AllowOrigins:
+          - "*"
+          # - !Ref WSTokenTrashRecordSetAlias
+          # - !Join
+          #   - ""
+          #   -
+          #     - "wss://"
+          #     - !Ref WSTokenTrashRecordSetAlias
+          # - !Join
+          #   - ""
+          #   -
+          #     - "https://"
+          #     - !Ref TokenTrashRecordSetAlias
+
+  XUMMCallbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: xumm-callback/
+      Handler: app.handler
+      MemorySize: 128
+      Runtime: python3.8
+      # Environment:
+      #   Variables:
+      #
+  XUMMCallbackPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - TokenTrashHTTP
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref XUMMCallbackFunction
+      Principal: apigateway.amazonaws.com
+
+Outputs:
+  HTTPSURI:
+    Description: "The HTTPS URI to connect to"
+    Value: !GetAtt TokenTrashHTTP.ApiEndpoint
