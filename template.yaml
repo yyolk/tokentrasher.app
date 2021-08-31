@@ -14,30 +14,6 @@ Parameters:
     NoEcho: true
 
 Resources:
-  TokenTrashHTTP:
-    Type: AWS::ApiGatewayV2::Api
-    Properties:
-      Name: TokenTrashHTTP
-      ProtocolType: HTTP
-      Target:
-        Fn::Sub:
-          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FrontendFunction.Arn}/invocations
-      CorsConfiguration:
-        AllowMethods:
-          - GET
-        AllowOrigins:
-          - "*"
-          # - !Ref WSTokenTrashRecordSetAlias
-          # - !Join
-          #   - ""
-          #   -
-          #     - "wss://"
-          #     - !Ref WSTokenTrashRecordSetAlias
-          # - !Join
-          #   - ""
-          #   -
-          #     - "https://"
-          #     - !Ref TokenTrashRecordSetAlias
   TokenTrashXUMMCallbackHTTP:
     Type: AWS::ApiGatewayV2::Api
     Properties:
@@ -62,7 +38,6 @@ Resources:
           #   -
           #     - "https://"
           #     - !Ref TokenTrashRecordSetAlias
-
   XUMMCallbackFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -70,6 +45,39 @@ Resources:
       Handler: app.handler
       MemorySize: 128
       Runtime: python3.8
+  XUMMCallbackPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - TokenTrashXUMMCallbackHTTP
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref XUMMCallbackFunction
+      Principal: apigateway.amazonaws.com
+
+  TokenTrashHTTP:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: TokenTrashHTTP
+      ProtocolType: HTTP
+      Target:
+        Fn::Sub:
+          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FrontendFunction.Arn}/invocations
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+        AllowOrigins:
+          - "*"
+          # - !Ref WSTokenTrashRecordSetAlias
+          # - !Join
+          #   - ""
+          #   -
+          #     - "wss://"
+          #     - !Ref WSTokenTrashRecordSetAlias
+          # - !Join
+          #   - ""
+          #   -
+          #     - "https://"
+          #     - !Ref TokenTrashRecordSetAlias
   FrontendFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -81,14 +89,6 @@ Resources:
         Variables:
           XUMM_API_KEY: !Ref XUMMApiToken
           XUMM_API_SECRET: !Ref XUMMApiSecret
-  XUMMCallbackPermission:
-    Type: AWS::Lambda::Permission
-    DependsOn:
-      - TokenTrashXUMMCallbackHTTP
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref XUMMCallbackFunction
-      Principal: apigateway.amazonaws.com
   FrontEndPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
