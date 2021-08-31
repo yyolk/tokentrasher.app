@@ -21,6 +21,30 @@ Resources:
       ProtocolType: HTTP
       Target:
         Fn::Sub:
+          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FrontendFunction.Arn}/invocations
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+        AllowOrigins:
+          - "*"
+          # - !Ref WSTokenTrashRecordSetAlias
+          # - !Join
+          #   - ""
+          #   -
+          #     - "wss://"
+          #     - !Ref WSTokenTrashRecordSetAlias
+          # - !Join
+          #   - ""
+          #   -
+          #     - "https://"
+          #     - !Ref TokenTrashRecordSetAlias
+  TokenTrashXUMMCallbackHTTP:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: TokenTrashXUMMCallbackHTTP
+      ProtocolType: HTTP
+      Target:
+        Fn::Sub:
           arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${XUMMCallbackFunction.Arn}/invocations
       CorsConfiguration:
         AllowMethods:
@@ -46,19 +70,38 @@ Resources:
       Handler: app.handler
       MemorySize: 128
       Runtime: python3.8
-      # Environment:
-      #   Variables:
-      #
+  FrontendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: frontend/
+      Handler: app.handler
+      MemorySize: 128
+      Runtime: python3.8
+      Environment:
+        Variables:
+          XUMM_API_KEY: !Ref XUMMApiToken
+          XUMM_API_SECRET: !Ref XUMMApiSecret
   XUMMCallbackPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - TokenTrashXUMMCallbackHTTP
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref XUMMCallbackFunction
+      Principal: apigateway.amazonaws.com
+  FrontEndPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
       - TokenTrashHTTP
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref XUMMCallbackFunction
+      FunctionName: !Ref FrontendFunction
       Principal: apigateway.amazonaws.com
 
 Outputs:
   HTTPSURI:
     Description: "The HTTPS URI to connect to"
     Value: !GetAtt TokenTrashHTTP.ApiEndpoint
+  HTTPSCallbackURI:
+    Description: "The HTTPS URI for the XUMM backend to connect to"
+    Value: !GetAtt TokenTrashXUMMCallbackHTTP.ApiEndpoint
