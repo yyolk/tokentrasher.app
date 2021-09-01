@@ -107,14 +107,18 @@ def handler(event, context):
         }
     elif (split_path := req_path.split("/"))[-1] == "empty":
         empty_what = split_path[-2]
-        user_id = split_path[-3]
+        empty_to = split_path[-3]
+        user_id = split_path[-4]
         requested_payload = xumm_client.get_payload_by_ci(user_id)
         user_account = requested_payload["response"]["account"]
         account_lines = xrpl_client.request(AccountLines(account=user_account)).result[
             "lines"
         ]
         matched_line = next(
-            filter(lambda l: l["currency"] == empty_what, account_lines)
+            filter(
+                lambda l: l["currency"] == empty_what and l["account"] == empty_to,
+                account_lines,
+            )
         )
         payload_resp_json = xumm_client.post_payload(
             txjson={
@@ -128,8 +132,8 @@ def handler(event, context):
             },
             options={
                 "return_url": {
-                    "web": f"https://{domain_name}/{user_id}/{matched_line['currency']}/delete",
-                    "app": f"https://{domain_name}/{user_id}/{matched_line['currency']}/delete",
+                    "web": f"https://{domain_name}/{user_id}/{matched_line['account']}/{matched_line['currency']}/delete",
+                    "app": f"https://{domain_name}/{user_id}/{matched_line['account']}/{matched_line['currency']}/delete",
                 }
             },
         )
@@ -143,14 +147,18 @@ def handler(event, context):
         }
     elif split_path[-1] == "delete":
         delete_what = split_path[-2]
-        user_id = split_path[-3]
+        delete_from = split_path[-3]
+        user_id = split_path[-4]
         requested_payload = xumm_client.get_payload_by_ci(user_id)
         user_account = requested_payload["response"]["account"]
         account_lines = xrpl_client.request(AccountLines(account=user_account)).result[
             "lines"
         ]
         matched_line = next(
-            filter(lambda l: l["currency"] == delete_what, account_lines)
+            filter(
+                lambda l: l["currency"] == delete_what and l["account"] == delete_from,
+                account_lines,
+            )
         )
         payload_resp_json = xumm_client.post_payload(
             txjson={
@@ -196,7 +204,8 @@ def handler(event, context):
             "headers": {"content-type": "text/html"},
             "body": index_template.render(
                 # account_lines=filtered_account_lines, user_id=user_id
-                account_lines=account_lines, user_id=user_id
+                account_lines=account_lines,
+                user_id=user_id,
             ),
         }
 
