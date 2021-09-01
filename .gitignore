@@ -193,3 +193,7 @@ docs/_book
 test/
 
 # End of https://www.toptal.com/developers/gitignore/api/vim,html,python,javascript,grunt,sass,gulp,vue
+
+test_node/
+.aws-sam/
+samconfig.toml
