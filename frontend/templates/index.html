@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TOKEN TRASH : Which do you want to TRASH</title>
+</head>
+<body>
+  <ul>
+    {% for line in account_lines %}
+    <li>
+      {{ line.currency }}: {{ line.balance }}
+      <ul>
+        <li><a href="{{ user_id }}/{{ line.currency }}/empty">Empty</a></li>
+        <li><a href="{{ user_id }}/{{ line.currency }}/delete">Delete</a></li>
+      </ul>
+      
+    </li>
+    {% endfor %}
+  </ul>
+</body>
+</html>

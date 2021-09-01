@@ -36,7 +36,7 @@ const main = async () => {
 
 
 
-
+  // SETUP
   // const request = {
   //   "TransactionType": "TrustSet",
   //   "LimitAmount": {
@@ -55,6 +55,7 @@ const main = async () => {
   //     "issuer": "r9rLLez84biAyZFtVWHY2UfXGKvxEnvX6G"
   //   }
   // }
+  // REMOVE
   // const request = {
   //   "TransactionType": "Payment",
   //   "Destination": "r9rLLez84biAyZFtVWHY2UfXGKvxEnvX6G",
