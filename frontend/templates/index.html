@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>TOKEN TRASH : Which do you want to TRASH</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block content %}
   {% if account_lines %}
   <ul>
     {% for line in account_lines %}
@@ -20,5 +16,4 @@
   {% else %}
   <h3>You don't have an trustlines on your account.</h3>
   {% endif %}
-</body>
-</html>
+{% endblock %}

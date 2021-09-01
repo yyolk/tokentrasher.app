@@ -1,6 +1,6 @@
 import os
 
-from typing import Optional
+# from typing import Optional
 
 from uplink import (
     Consumer,
@@ -50,8 +50,8 @@ class XUMM(Consumer):
     def post_payload(
         self,
         txjson: Field,
-        options: Optional[Field] = None,
-        custom_meta: Optional[Field] = None,
+        options: Field = None,
+        custom_meta: Field = None,
     ):
         """https://xumm.readme.io/reference/post-payload"""
 
