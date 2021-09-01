@@ -5,6 +5,7 @@
   <title>TOKEN TRASH : Which do you want to TRASH</title>
 </head>
 <body>
+  {% if account_lines %}
   <ul>
     {% for line in account_lines %}
     <li>
@@ -16,5 +17,7 @@
     </li>
     {% endfor %}
   </ul>
+  {% else %}
+  <h3>You don't have an trustlines on you're account.</h3>
 </body>
 </html>

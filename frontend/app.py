@@ -88,18 +88,6 @@ def handler(event, context):
 
     if req_path == "/":
         new_user_id = str(uuid4())
-        # return {
-        #     "statusCode": 302,
-        #     "headers": {
-        #         "location": (
-        #             "https://"
-        #             f"{domain_name}/"
-        #             f"{new_user_id}/"
-        #         )
-        #     },
-        # }
-        # custom_identifier = "test"
-        # custom_identifier = str(uuid4())
         payload_resp_json = xumm_client.post_payload(
             txjson={"TransactionType": "SignIn"},
             options={
