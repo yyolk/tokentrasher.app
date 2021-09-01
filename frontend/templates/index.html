@@ -8,12 +8,11 @@
   <ul>
     {% for line in account_lines %}
     <li>
-      {{ line.currency }}: {{ line.balance }}
+      <h4>{{ line.currency }}: {{ line.balance }}</h4>
       <ul>
         <li><a href="{{ user_id }}/{{ line.currency }}/empty">Empty</a></li>
         <li><a href="{{ user_id }}/{{ line.currency }}/delete">Delete</a></li>
       </ul>
-      
     </li>
     {% endfor %}
   </ul>

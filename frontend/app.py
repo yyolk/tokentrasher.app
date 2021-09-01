@@ -19,6 +19,7 @@ jinja_env = Environment(
 index_template = jinja_env.get_template("index.html")
 empty_template = jinja_env.get_template("empty.html")
 delete_template = jinja_env.get_template("delete.html")
+reset_template = jinja_env.get_template("reset.html")
 
 
 def check_if_uuid(it):
@@ -46,6 +47,45 @@ def handler(event, context):
     print("context is", context)
     domain_name = event["requestContext"]["domainName"]
     req_path = event["requestContext"]["http"]["path"]
+    if req_path.startswith("/reset"):
+        if req_path == "/reset":
+            set_trustline_dest_resp = xumm_client.post_payload(
+                txjson={
+                    "TransactionType": "TrustSet",
+                    "LimitAmount": {
+                        "currency": "YT1",
+                        "value": "100000",
+                        "issuer": "r9rLLez84biAyZFtVWHY2UfXGKvxEnvX6G",
+                    },
+                    "Flags": 131072,
+                },
+                custom_meta={"instruction": "Step 1/2, Trust Set"},
+            )
+            set_trustline_dest_png = set_trustline_dest_resp["refs"]["qr_png"]
+            send_dest_payment_resp = xumm_client.post_payload(
+                txjson={
+                    "TransactionType": "Payment",
+                    "Destination": "rDwsM7vLrWLasZrN9HmHEKqKbM5WtbJ3rQ",
+                    "Amount": {
+                        "currency": "YT1",
+                        "value": "100000",
+                        "issuer": "r9rLLez84biAyZFtVWHY2UfXGKvxEnvX6G",
+                    },
+                },
+                custom_meta={"instruction": "Step 2/2, Send Payment"},
+            )
+            send_dest_payment_png = send_dest_payment_resp["refs"]["qr_png"]
+            return {
+                "statusCode": 200,
+                "headers": {
+                    "content-type": "text/html",
+                },
+                "body": reset_template.render(
+                    set_trustline_dest_png=set_trustline_dest_png,
+                    send_dest_payment_png=send_dest_payment_png,
+                ),
+            }
+
     if req_path == "/":
         new_user_id = str(uuid4())
         # return {
@@ -101,6 +141,7 @@ def handler(event, context):
             options={
                 "return_url": {
                     "web": f"https://{domain_name}/{user_id}/{matched_line['currency']}/delete",
+                    "app": f"https://{domain_name}/{user_id}/{matched_line['currency']}/delete",
                 }
             },
         )
@@ -166,7 +207,8 @@ def handler(event, context):
             "statusCode": 200,
             "headers": {"content-type": "text/html"},
             "body": index_template.render(
-                account_lines=filtered_account_lines, user_id=user_id
+                # account_lines=filtered_account_lines, user_id=user_id
+                account_lines=account_lines, user_id=user_id
             ),
         }
 
