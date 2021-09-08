@@ -72,18 +72,23 @@ const main = async () => {
   //     "value": "0",
   //     "issuer": "r9rLLez84biAyZFtVWHY2UfXGKvxEnvX6G"
   //   }
+    // const request = {
+    //   "txjson": {
+    //     "TransactionType": "SignIn"
+    //   },
+    //   "options": {
+    //     "return_url": {
+    //       "app": "https://tokentrasher.app",
+    //       "web": "https://tokentrasher.app"
+    //     }
+    //   }
+    // }
+
     const request = {
       "txjson": {
         "TransactionType": "SignIn"
-      },
-      "options": {
-        "return_url": {
-          "app": "https://tokentrasher.app",
-          "web": "https://tokentrasher.app"
-        }
       }
     }
-
 
   const payload = await Sdk.payload.create(request, true)
   console.log(payload)
