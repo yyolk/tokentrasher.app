@@ -1,0 +1,16 @@
+{
+  "start": {
+    "title": "Token Trasher",
+    "button": "Let's go!"
+  },
+  "wizard": {
+    "step_0": {
+      "button": "A button"
+    },
+    "error": {
+      "403": "Access denied (403)",
+      "404": "Not Found (404)"
+    }
+  }
+}
+
