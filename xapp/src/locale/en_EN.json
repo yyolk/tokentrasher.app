@@ -5,11 +5,20 @@
   },
   "wizard": {
     "step_0": {
-      "button": "A button"
+      "header": "Step 0 Header",
+      "body": "Step 0 Body",
+      "button": "Step 0 button"
+    },
+    "step_1": {
+      "header": "Step 1 Header",
+      "body": "Step 1 Body",
+      "button": "Step 1 button"
     },
     "error": {
       "403": "Access denied (403)",
-      "404": "Not Found (404)"
+      "404": "Not Found (404)",
+      "reactNative": "This webpage is not supported, this app must be run within XUMM",
+      "noTrustLines": "The selected account doesn't have trust lines. There's no tokens to burn! 👿"
     }
   }
 }

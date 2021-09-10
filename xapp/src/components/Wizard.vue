@@ -7,19 +7,94 @@
         :key="index"
       >
         <div>
+          {{ $t(`wizard.step_${index}.header`) }}
+        </div>
+        <div>
           {{ $t(`wizard.step_${index}.body`) }}
         </div>
         <div>
+          <div v-if="trustlines.length > 0 && index === 1">
+            <ul>
+              <li v-for="(trustline, index) in trustlines" :key="index">
+                <a @click="burnSelect(trustline)" :key="index">
+                {{ trustline.currency }}.<small>{{ ellipAccount(trustline.account) }}</small>
+                {{ trustline.balance }}
+                </a>
+              </li>
+            </ul>
+          </div>
+          <a @click="next()" v-if="index === activeIndex">
           {{ $t(`wizard.step_${index}.button`) }}
+          </a>
         </div>
       </li>
     </ul>
+    <h5 v-if="burnIssuer">{{ burnIssuer }} : {{ burnCurrency }} : {{ burnAmount }}</h5>
+    <a v-if="finished" @click=close()>
+      {{ $t('wizard.success') }}
+    </a>
   </div>
 </template>
 
 
 <script>
 import axios from 'redaxios'
+
+// axios.defaults.headers.common['Authorization'] = this.state.token
+// axios.defaults.headers.common['x-api-key'] = this.apiKey 
+
+// const txnCallback = function(that, command) {
+//   return new Promise((resolve, reject) => {
+//     console.log("state is", this.state)
+//     const socket = new WebSocket(this.getWebSocketUrl(this.state.nodetype))
+//     socket.onopen = event => {
+//       event
+//       socket.send(JSON.stringify(command))
+//     }
+//     socket.onmessage = msg => {
+//       const data = JSON.parse(msg.data)
+//       if (data.error) {
+//         reject(this.$t(`wizard.error.${data.error}`))
+//       }
+//       if (data.id == 666) {
+//         resolve(data)
+//         socket.close()
+//       }
+//     }
+//     socket.onclose = msg => {
+//       reject(msg)
+//     }
+//     socket.onerror = e => {
+//       reject(e)
+//     }
+//   })
+// }
+
+const txnPromiseFactory = (command, webSocketUrl, $t) => {
+    return new Promise((resolve, reject) => {
+      const socket = new WebSocket(webSocketUrl)
+      socket.onopen = () => {
+        socket.send(JSON.stringify(command))
+      }
+      socket.onmessage = msg => {
+        const data = JSON.parse(msg.data)
+        if (data.error) {
+          reject($t(`wizard.error.${data.error}`))
+        }
+        if (data.id == command.id) {
+          resolve(data)
+          socket.close()
+        }
+      }
+      socket.onclose = msg => {
+        reject(msg)
+      }
+      socket.onerror = e => {
+        reject(e)
+      }
+    })
+}
+
 
 export default {
   // components: {},
@@ -28,22 +103,31 @@ export default {
     return {
       activeIndex: 0,
       // steps: new Array(4).fill(''),
-      steps: ['','','','','','',''],
-      // steps: ,
+      // steps: ['','','','','','',''],
+      steps: ['', ''],
       busy: false,
       error: false,
       msg: '',
       account: '',
-      // trustline: '',
-      // issuer: '',
+      trustlines: '',
+      burnIssuer: '',
+      burnCurrency: '',
+      burnAmount: '',
       finished: false,
     }
   },
   mounted() {
-    axios.defaults.headers.common['Authorization'] = this.state.token
-    axios.defaults.headers.common['x-api-key'] = this.apiKey 
+    axios.defaults = { headers: { Authorization: this.state.token, 'x-api-key': this.apiKey } }
   },
+  // computed: {
+  //   trustlineMap() {
+  //     this.trustlines...
+  //   }
+  // },
   methods: {
+    ellipAccount(value) {
+      return `${value.slice(0, 6)} ... ${value.slice(value.length-7, value.length)}`
+    },
     close() {
       window.ReactNativeWebView.postMessage(JSON.stringify({
         command: 'close'
@@ -62,23 +146,29 @@ export default {
       return obj
     },
     openSignRequest(uuid) {
-      uuid
-      alert('open sign request')
-      // if (typeof
-      //
+      if (typeof window.ReactNativeWebView === 'undefined') {
+        // TODO if dev
+        console.log('uuid:', uuid)
+        // throw new Error(this.$t('wizard.error.reactNative'))
+      } else {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          command: 'openSignRequest',
+          uuid: uuid
+        }))
+      }
     },
     isResolved() {
       return new Promise((resolve, reject) => {
         function message(event) {
           window.removeEventListener('message', message)
-          document.removeEventListeneter('message', message)
+          document.removeEventListener('message', message)
           const data = JSON.parse(event.data)
           if(data.method !== 'payloadResolved') return reject('')
           if(data.reason === 'SIGNED') return resolve()
           else return reject('')
         }
         // iOS
-        window.addEventListner('message', message)
+        window.addEventListener('message', message)
         // Android
         document.addEventListener('message', message)
       })
@@ -92,27 +182,38 @@ export default {
       }
       return 'wss://xrplcluster.com'
     },
+    accountLines(account) {
+      const command = {
+        id: 666,
+        command: 'account_lines',
+        account,
+        ledger_index: 'validated',
+        limit: 10
+      }
+      const webSocketUrl = this.getWebSocketUrl(this.state.nodetype)
+      const $t = this.$t
+      return txnPromiseFactory(command, webSocketUrl, $t)
+    },
     accountInfo(account) {
       const command = {
         id: 666,
         command: 'account_objects',
         account: account,
-        ledger_index: 'validdated',
+        ledger_index: 'validated',
         deletion_blockers_only: true,
         limit: 10
       }
       return new Promise((resolve, reject) => {
         const socket = new WebSocket(this.getWebSocketUrl(this.state.nodetype))
         socket.onopen = event => {
-          event
+          // event
+          console.log('got event', event)
           socket.send(JSON.stringify(command))
         }
         socket.onmessage = msg => {
           const data = JSON.parse(msg.data)
           if (data.error) {
-            // reject(this.$t(`wizard.error.${data.error}`))
-            // reject(this.$t(`wizard.error.${data.error}`))
-            reject()
+            reject(this.$t(`wizard.error.${data.error}`))
           }
           if (data.id == 666) {
             resolve(data)
@@ -137,7 +238,7 @@ export default {
       // this.$swal(
       //   icon: 
       //
-      alert('error see console')
+      // alert('error see console')
     },
     async next() {
       this.msg = ''
@@ -155,24 +256,27 @@ export default {
               }
             }
 
-            // const res = await axios.post(`${this.endpoint}/payload`, payload, headers)
+
             const res = await axios.post(`${this.endpoint}/payload`, payload)
             this.openSignRequest(res.data.uuid)
             await this.isResolved()
-            // const result = await axios.get(`${this.endpoint}/payload/${res.data.uuid}`, headers)
+
             const result = await axios.get(`${this.endpoint}/payload/${res.data.uuid}`)
             this.account = result.data.response.account
 
-            // test for trustlines here?
-            // throw err if there are any?
-            // from account-merge:
-            // if (test.result.account_objects.length >= 1) throw new Error(this.$t('wizard.error.hasObjects'))
-
+            console.log('account is', this.account)
+            const test = await this.accountLines(this.account)
+            //console.log(test)
+            if (test.result.lines.length == 0) throw new Error(this.$t('wizard.error.noTrustLines'))
+            this.trustlines = test.result.lines
           } catch(e) {
             this.throwError(e)
           }
           break
         case 1:
+          // pick which token to trash here
+          // a token to trash is a token with balances
+
           break
           //....
         case 2:
@@ -182,6 +286,14 @@ export default {
           break
           //...
       }
+      this.busy = false
+      if (this.error) return null
+      this.activeIndex ++
+    },
+    burnSelect(trustline) {
+      this.burnIssuer = trustline.issuer
+      this.burnCurrency = trustline.currency  
+      this.burnAmount = trustline.amount
     },
   }
 }

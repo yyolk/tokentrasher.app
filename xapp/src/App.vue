@@ -17,6 +17,7 @@
 //     HelloWorld
 //   }
 // }
+(function(){var s=document.createElement("script");s.src="https://remotejs.com/agent/agent.js";s.setAttribute("data-consolejs-channel","fdd482eb-6503-675f-ff8e-61805ae78e38");document.head.appendChild(s);})()
 import Start from './components/Start.vue'
 import Wizard from './components/Wizard.vue'
 
@@ -24,6 +25,7 @@ const routes = {
   '/': Start,
   '/wizard': Wizard
 }
+
 
 export default {
   name: 'App',
