@@ -94,50 +94,39 @@ export default {
         }
 
         const openSignRequest = (uuid) => {
-            try {
-                sendCommandtoXumm({
-                    command: 'openSignRequest',
-                    uuid: uuid
-                })
-            } catch(e) {
-                throw e
-            }
+              sendCommandtoXumm({
+                  command: 'openSignRequest',
+                  uuid: uuid
+              })
         }
 
         const closeXapp = () => {
-            try {
-                sendCommandtoXumm({
-                    command: "close",
-                    refreshEvents: false
-                })
-            } catch(e) {
-                throw e
-            }
+              sendCommandtoXumm({
+                  command: "close",
+                  refreshEvents: false
+              })
         }
 
         const openExternalBrowser = (url) => {
-            try {
-                sendCommandtoXumm({
-                    command: 'openBrowser',
-                    url: url
-                })
-            } catch(e) {
-                throw e
-            }
+              sendCommandtoXumm({
+                  command: 'openBrowser',
+                  url: url
+              })
         }
 
         const getCuratedAssets = async () => {
             if(state.curatedAssets && Object.keys(state.curatedAssets).length > 0 && state.curatedAssets.constructor === Object) return state.curatedAssets
-            try {
+            // try {
                 const res = await axios.get(`${api}/curated-assets`, headers())
                 state.curatedAssets = res.data
                 return state.curatedAssets
-            } catch(e) {
-                throw e
-            }
+            // } catch(e) {
+            //     throw e
+            // }
         }
 
-        const status = (url) => {
+        // const status = (url) => {
+        const status = () => {
             return new Promise((resolve, reject) => {
                 function message(event) {
                     window.removeEventListener("message", message)
