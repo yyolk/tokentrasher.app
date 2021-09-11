@@ -131,7 +131,6 @@ export default {
   computed: {
     accountTrustLines() {
       const accData = this.$xapp.getAccountData()
-      console.log(this.$xapp.getAccountData())
       if (!accData) return {}
       const array = accData.lines
       const obj = {}
@@ -186,7 +185,7 @@ export default {
         // }
         // this.$xapp.setAccount(this.account)
         this.data = {
-          account: 'rMtfWxk9ZLr5mHrRzJMnaE5x1fqN3oPdJ7',
+          account: 'rNCCp3wLVsFF1F451Er1Agmx3zAS5JnRCk',
           nodetype: 'TESTNET'
         }
         this.$xapp.setAccount(this.data.account)
