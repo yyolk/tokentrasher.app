@@ -49,7 +49,7 @@ export default {
       this.currentRoute = window.location.pathname
       this.state = event.state
     })
-  }
+  },
 }
 </script>
 

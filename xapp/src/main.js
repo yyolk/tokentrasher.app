@@ -27,7 +27,9 @@ app.config.globalProperties.token = token
 app.config.globalProperties.endpoint = process.env?.VUE_APP_API_ENDPOINT || ''
 app.config.globalProperties.apiKey = process.env?.VUE_APP_XAPP_KEY || ''
 
+import rippled from './plugins/rippled-vue'
 import xapp from './plugins/xapp-vue'
-app.use(xapp, { api: process.env.VUE_API_ENDPOINT, key: process.env.VUE_APP_XAPP_KEY })
+app.use(rippled)
+app.use(xapp, { api: process.env.VUE_APP_API_ENDPOINT, key: process.env.VUE_APP_XAPP_KEY })
 
 app.mount('#app')

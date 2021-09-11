@@ -14,6 +14,7 @@
         </div>
         <div>
           <div v-if="trustlines.length > 0 && index === 1">
+              {{ accountTrustLines }}
             <ul>
               <li v-for="(trustline, index) in trustlines" :key="index">
                 <a @click="burnSelect(trustline)" :key="index">
@@ -116,15 +117,109 @@ export default {
       finished: false,
     }
   },
-  mounted() {
+  async mounted() {
     axios.defaults = { headers: { Authorization: this.state.token, 'x-api-key': this.apiKey } }
+    this.busy = false
   },
   // computed: {
   //   trustlineMap() {
   //     this.trustlines...
   //   }
   // },
+  computed: {
+    accountTrustLines() {
+      const accData = this.$xapp.getAccountData()
+      console.log(this.$xapp.getAccountData())
+      if (!accData) return {}
+      const array = accData.lines
+      const obj = {}
+
+      if (Array.isArray(array) && array.length > 0) {
+        array.forEach(line => {
+          if (typeof obj[line.currency] === 'undefined') {
+            obj[line.currency] = {
+              [line.account]: line
+            }
+          } else {
+            obj[line.currency][line.account] = line
+          }
+        })
+      }
+      return obj
+    }
+  },
   methods: {
+    async setAccountData () {
+      const account_info = await this.$rippled.send({
+        command: 'account_info',
+        account: this.$xapp.getAccount()
+      })
+      if(account_info.error === 'actNotFound') return this.$xapp.setAccountData(null)
+      const account_lines = await this.$rippled.send({
+        command: 'account_lines',
+        account: this.$xapp.getAccount()
+      })
+      // if (account_lines.lines < 1) alert('no trustlines')
+      const account_objects = await this.$rippled.send({
+        command: 'account_objects',
+        account: this.$xapp.getAccount()
+      })
+      const account_data = {
+        account: this.$xapp.getAccount(),
+        account_data: account_info.account_data,
+        objects: account_objects.account_objects,
+        lines: account_lines.lines
+      }
+      this.$xapp.setAccountData(account_data)
+    },
+    async getTokenData () {
+      this.busy = true
+        // todo DELETE MEEE ASAP ONLY FOR TESTING ON LOCALHOST
+        if (typeof window.ReactNativeWebView === 'undefined') {
+          // this.data = {
+          //    account: 'rJR4MQt2egH9AmibZ8Hu5yTKVuLPv1xumm',
+          //    nodetype: 'MAINNET',
+          //    // account: 'rMtfWxk9ZLr5mHrRzJMnaE5x1fqN3oPdJ7',
+          //    // nodetype: 'TESTNET'
+          // }
+          this.$xapp.setAccount(this.account)
+          // this.$xapp.setAccount(this.data.account)
+        } else {
+          try {
+            this.data = await this.$xapp.getTokenData()
+            this.$xapp.setAccount(this.data.account)
+          } catch(e) {
+            this.busy = false
+            this.error = this.$t('xapp.error.get_ott_data')
+            throw e
+          }
+        }
+    },
+    async subscribe() {
+      this.busy = true
+      try {
+        const url = this.getWebSocketUrl(this.data.nodetype)
+        //const ws = this.$rippled.connect(url, { NoUserAgent: true, MaxConnectTryCount: 5 })
+        this.$rippled.connect(url, { NoUserAgent: true, MaxConnectTryCount: 5 })
+        this.setAccountData()
+        this.$rippled.send({
+          command: 'subscribe',
+          accounts: [this.data.account]
+        })
+        this.$rippled.on('transaction', tx => {
+          this.setAccountData()
+          this.$xapp.onTransaction(tx)
+        })
+        this.busy = false
+        this.ready = true
+        this.error = false
+      } catch(e) {
+        this.busy = false
+        console.log(e)
+        this.error = this.$t('xapp.error.subscribe_to_account')
+        throw e
+      }
+    },
     ellipAccount(value) {
       return `${value.slice(0, 6)} ... ${value.slice(value.length-7, value.length)}`
     },
@@ -267,8 +362,13 @@ export default {
             console.log('account is', this.account)
             const test = await this.accountLines(this.account)
             //console.log(test)
+
             if (test.result.lines.length == 0) throw new Error(this.$t('wizard.error.noTrustLines'))
             this.trustlines = test.result.lines
+
+            await this.getTokenData()
+            await this.subscribe()
+
           } catch(e) {
             this.throwError(e)
           }
