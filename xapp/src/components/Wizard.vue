@@ -154,7 +154,7 @@ export default {
         command: 'account_info',
         account: this.$xapp.getAccount()
       })
-      if(account_info.error === 'actNotFound') return this.$xapp.setAccountData(null)
+      if (account_info.error === 'actNotFound') return this.$xapp.setAccountData(null)
       const account_lines = await this.$rippled.send({
         command: 'account_lines',
         account: this.$xapp.getAccount()
@@ -174,26 +174,26 @@ export default {
     },
     async getTokenData () {
       this.busy = true
-        // todo DELETE MEEE ASAP ONLY FOR TESTING ON LOCALHOST
-        if (typeof window.ReactNativeWebView === 'undefined') {
-          // this.data = {
-          //    account: 'rJR4MQt2egH9AmibZ8Hu5yTKVuLPv1xumm',
-          //    nodetype: 'MAINNET',
-          //    // account: 'rMtfWxk9ZLr5mHrRzJMnaE5x1fqN3oPdJ7',
-          //    // nodetype: 'TESTNET'
-          // }
-          this.$xapp.setAccount(this.account)
-          // this.$xapp.setAccount(this.data.account)
-        } else {
-          try {
-            this.data = await this.$xapp.getTokenData()
-            this.$xapp.setAccount(this.data.account)
-          } catch(e) {
-            this.busy = false
-            this.error = this.$t('xapp.error.get_ott_data')
-            throw e
-          }
+      if (typeof window.ReactNativeWebView === 'undefined') {
+        // set account for dev manually here
+        // this.data = {
+        //    account: 'r...',
+        //    nodetype: 'MAINNET',
+        //    // account: 'r...',
+        //    // nodetype: 'TESTNET'
+        // }
+        this.$xapp.setAccount(this.account)
+        // this.$xapp.setAccount(this.data.account)
+      } else {
+        try {
+          this.data = await this.$xapp.getTokenData()
+          this.$xapp.setAccount(this.data.account)
+        } catch(e) {
+          this.busy = false
+          this.error = this.$t('xapp.error.get_ott_data')
+          throw e
         }
+      }
     },
     async subscribe() {
       this.busy = true
