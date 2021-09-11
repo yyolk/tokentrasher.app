@@ -14,7 +14,6 @@
         </div>
         <div>
           <div v-if="trustlines.length > 0 && index === 1">
-              {{ accountTrustLines }}
             <ul>
               <li v-for="(trustline, index) in trustlines" :key="index">
                 <a @click="burnSelect(trustline)" :key="index">
@@ -30,6 +29,7 @@
         </div>
       </li>
     </ul>
+    {{ accountTrustLines }}
     <h5 v-if="burnIssuer">{{ burnIssuer }} : {{ burnCurrency }} : {{ burnAmount }}</h5>
     <a v-if="finished" @click=close()>
       {{ $t('wizard.success') }}
@@ -118,6 +118,8 @@ export default {
     }
   },
   async mounted() {
+    await this.getTokenData()
+    await this.subscribe()
     axios.defaults = { headers: { Authorization: this.state.token, 'x-api-key': this.apiKey } }
     this.busy = false
   },
@@ -182,8 +184,12 @@ export default {
         //    // account: 'r...',
         //    // nodetype: 'TESTNET'
         // }
-        this.$xapp.setAccount(this.account)
-        // this.$xapp.setAccount(this.data.account)
+        // this.$xapp.setAccount(this.account)
+        this.data = {
+          account: 'rMtfWxk9ZLr5mHrRzJMnaE5x1fqN3oPdJ7',
+          nodetype: 'TESTNET'
+        }
+        this.$xapp.setAccount(this.data.account)
       } else {
         try {
           this.data = await this.$xapp.getTokenData()
@@ -289,40 +295,40 @@ export default {
       const $t = this.$t
       return txnPromiseFactory(command, webSocketUrl, $t)
     },
-    accountInfo(account) {
-      const command = {
-        id: 666,
-        command: 'account_objects',
-        account: account,
-        ledger_index: 'validated',
-        deletion_blockers_only: true,
-        limit: 10
-      }
-      return new Promise((resolve, reject) => {
-        const socket = new WebSocket(this.getWebSocketUrl(this.state.nodetype))
-        socket.onopen = event => {
-          // event
-          console.log('got event', event)
-          socket.send(JSON.stringify(command))
-        }
-        socket.onmessage = msg => {
-          const data = JSON.parse(msg.data)
-          if (data.error) {
-            reject(this.$t(`wizard.error.${data.error}`))
-          }
-          if (data.id == 666) {
-            resolve(data)
-            socket.close()
-          }
-        }
-        socket.onclose = msg => {
-          reject(msg)
-        }
-        socket.onerror = e => {
-          reject(e)
-        }
-      })
-    },
+    // accountInfo(account) {
+    //   const command = {
+    //     id: 666,
+    //     command: 'account_objects',
+    //     account: account,
+    //     ledger_index: 'validated',
+    //     deletion_blockers_only: true,
+    //     limit: 10
+    //   }
+    //   return new Promise((resolve, reject) => {
+    //     const socket = new WebSocket(this.getWebSocketUrl(this.state.nodetype))
+    //     socket.onopen = event => {
+    //       // event
+    //       console.log('got event', event)
+    //       socket.send(JSON.stringify(command))
+    //     }
+    //     socket.onmessage = msg => {
+    //       const data = JSON.parse(msg.data)
+    //       if (data.error) {
+    //         reject(this.$t(`wizard.error.${data.error}`))
+    //       }
+    //       if (data.id == 666) {
+    //         resolve(data)
+    //         socket.close()
+    //       }
+    //     }
+    //     socket.onclose = msg => {
+    //       reject(msg)
+    //     }
+    //     socket.onerror = e => {
+    //       reject(e)
+    //     }
+    //   })
+    // },
     throwError(e) {
       this.error = true
       if (e === '') return
@@ -365,9 +371,6 @@ export default {
 
             if (test.result.lines.length == 0) throw new Error(this.$t('wizard.error.noTrustLines'))
             this.trustlines = test.result.lines
-
-            await this.getTokenData()
-            await this.subscribe()
 
           } catch(e) {
             this.throwError(e)
