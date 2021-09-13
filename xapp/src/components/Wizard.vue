@@ -1,45 +1,58 @@
 <template>
   <div class="wizard">
-    <ul>
-      <li 
-        v-for="(step, index) in steps"
-        :class="getStepClass(index)"
-        :key="index"
-      >
-        <div>
-          {{ $t(`wizard.step_${index}.header`) }}
-        </div>
-        <div>
-          {{ $t(`wizard.step_${index}.body`) }}
-        </div>
-        <div>
-          <div v-if="trustlines.length > 0 && index === 1">
-            <ul>
-              <li v-for="(trustline, index) in trustlines" :key="index">
-                <a @click="burnSelect(trustline)" :key="index">
-                {{ trustline.currency }}.<small>{{ ellipAccount(trustline.account) }}</small>
-                {{ trustline.balance }}
-                </a>
-              </li>
-            </ul>
-          </div>
-          <a @click="next()" v-if="index === activeIndex">
-          {{ $t(`wizard.step_${index}.button`) }}
-          </a>
-        </div>
-      </li>
-    </ul>
-    {{ accountTrustLines }}
-    <h5 v-if="burnIssuer">{{ burnIssuer }} : {{ burnCurrency }} : {{ burnAmount }}</h5>
-    <a v-if="finished" @click=close()>
-      {{ $t('wizard.success') }}
-    </a>
+    <!-- <ul> -->
+      <!-- <li  -->
+      <!--   v-for="(step, index) in steps" -->
+      <!--   :class="getStepClass(index)" -->
+      <!--   :key="index" -->
+      <!-- > -->
+      <!--   <div> -->
+      <!--     {{ $t(`wizard.step_${index}.header`) }} -->
+      <!--   </div> -->
+      <!--   <div> -->
+      <!--     {{ $t(`wizard.step_${index}.body`) }} -->
+      <!--   </div> -->
+      <!--   <div> -->
+      <!--     <div v-if="trustlines.length > 0 &#38;&#38; index === 1"> -->
+      <!--       <ul> -->
+      <!--         <li v-for="(trustline, index) in trustlines" :key="index"> -->
+      <!--           <a @click="burnSelect(trustline)" :key="index"> -->
+      <!--           {{ trustline.currency }}.<small>{{ ellipAccount(trustline.account) }}</small> -->
+      <!--           {{ trustline.balance }} -->
+      <!--           </a> -->
+      <!--         </li> -->
+      <!--       </ul> -->
+      <!--     </div> -->
+      <!--     <a @click="next()" v-if="index === activeIndex"> -->
+      <!--     {{ $t(`wizard.step_${index}.button`) }} -->
+      <!--     </a> -->
+      <!--   </div> -->
+      <!-- </li> -->
+    <!-- </ul> -->
+    <!-- <a v-if="finished" @click=close()> -->
+    <!--   {{ $t('wizard.success') }} -->
+    <!-- </a> -->
+    <!-- {{ accountTrustLines }} -->
+
+    <Select v-model:issuer="burnIssuer" v-model:currency="burnCurrency" v-model:balance="burnAmount" />
+    <h4>Isuuer: {{ burnIssuer }}</h4>
+    <h4>Currency {{ burnCurrency }}</h4>
+    <h4>Amount {{ burnAmount }}</h4>
+    <!-- <h4> -->
+    <!--   {{ burnCurrency }} {{ burnAmount }} -->
+    <!-- </h4> -->
   </div>
 </template>
 
 
 <script>
 import axios from 'redaxios'
+
+import Select from '@/components/Select'
+
+// Select.addEventListener('close', (event) => {
+//   console.log('got event', event)
+// }, false)
 
 // axios.defaults.headers.common['Authorization'] = this.state.token
 // axios.defaults.headers.common['x-api-key'] = this.apiKey 
@@ -98,7 +111,7 @@ const txnPromiseFactory = (command, webSocketUrl, $t) => {
 
 
 export default {
-  // components: {},
+  components: {Select},
   props: ['state'],
   data() {
     return {
@@ -122,6 +135,9 @@ export default {
     await this.subscribe()
     axios.defaults = { headers: { Authorization: this.state.token, 'x-api-key': this.apiKey } }
     this.busy = false
+    // this.$emitter.on('selectedCurrency', (event) => {
+    //   console.log('selectedCurrency event', event)
+    // })
   },
   // computed: {
   //   trustlineMap() {
@@ -392,11 +408,11 @@ export default {
       if (this.error) return null
       this.activeIndex ++
     },
-    burnSelect(trustline) {
-      this.burnIssuer = trustline.issuer
-      this.burnCurrency = trustline.currency  
-      this.burnAmount = trustline.amount
-    },
+    // burnSelect(trustline) {
+    //    this.burnIssuer = trustline.issuer
+    //    this.burnCurrency = trustline.currency  
+    //    this.burnAmount = trustline.amount
+    // },
   }
 }
 

@@ -49,6 +49,9 @@ export default {
       this.currentRoute = window.location.pathname
       this.state = event.state
     })
+    window.addEventListener('selectedCurrency', (event) => {
+      console.log('got selectedCurrency event', event)
+    })
   },
 }
 </script>

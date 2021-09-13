@@ -27,6 +27,10 @@ app.config.globalProperties.token = token
 app.config.globalProperties.endpoint = process.env?.VUE_APP_API_ENDPOINT || ''
 app.config.globalProperties.apiKey = process.env?.VUE_APP_XAPP_KEY || ''
 
+// import mitt from 'mitt'
+// const emitter = mitt()
+// app.config.globalProperties.$emitter = emitter
+
 import rippled from './plugins/rippled-vue'
 import xapp from './plugins/xapp-vue'
 app.use(rippled)
