@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% if account_lines %}
+  <ul>
+    {% for line in account_lines %}
+    <li>
+      <h4>{{ line.currency }}: {{ line.balance }}</h4>
+      <ul>
+        <li><a href="/{{ user_id }}/{{ line.account }}/{{ line.currency }}/empty">Empty</a></li>
+        <!-- <li><a href="/{{ user_id }}/{{ line.currency }}/delete">Delete</a></li> -->
+      </ul>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <h3>You don't have an trustlines on your account.</h3>
+  {% endif %}
+{% endblock %}
